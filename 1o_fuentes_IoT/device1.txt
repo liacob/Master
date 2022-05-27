@@ -1,0 +1,13 @@
+msg.payload.chatId = 932398392;
+msg.payload.type = "message";
+msg.payload.content = JSON.stringify(msg.payload.d);
+var d = new Date();
+msg.payload.date = d;
+delete msg.payload.d;
+return msg;
+
+
+LucianIacobBot
+1609032244:AAEu-r7khfzUepokeFcwbS7cK6cqgnzWcO8
+Lucius1998
+932398392
