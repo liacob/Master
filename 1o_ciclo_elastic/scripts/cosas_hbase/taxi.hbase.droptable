@@ -1,0 +1,3 @@
+disable 'taxi'
+drop 'taxi'
+exit

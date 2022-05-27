@@ -1,0 +1,31 @@
+{
+"mappings":{
+  "properties": {
+    "Borough": {
+      "type": "keyword"
+    },
+    "PU_datetime": {
+      "type": "date",
+      "format": "yyyy-MM-dd HH:mm:ss"
+    },
+    "create": {
+      "type": "object"
+    },
+    "distance_miles": {
+      "type": "double"
+    },
+    "id": {
+      "type": "long"
+    },
+    "tip": {
+      "type": "double"
+    },
+    "total": {
+      "type": "double"
+    },
+    "trip_duration_min": {
+      "type": "double"
+    }
+  }
+}
+}

@@ -1,0 +1,1 @@
+hbase org.apache.hadoop.hbase.mapreduce.ImportTsv -Dimporttsv.separator=',' -Dimporttsv.columns='HBASE_ROW_KEY,cf:PU_datetime,cf:Borough,cf:trip_duration_min,cf:distance_miles,cf:tip,cf:total,' taxi /tmp/taxi_2019.csv
