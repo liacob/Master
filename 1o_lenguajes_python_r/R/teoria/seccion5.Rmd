@@ -1,0 +1,160 @@
+---
+title: "seccion5"
+author: "Lucian"
+date: "1/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyr)
+library(dplyr)
+table_2 <- pivot_wider(table1, names_from = year, values_from = c(cases, population))
+
+tabla_casos <- table2 %>% filter(type=="cases")
+tabla_pop <- table2 %>% filter(type=="population")
+
+rat <- rep(x=c(tabla_casos$count / tabla_pop$count * 10000),each=2,times=1)
+
+table2 %>%
+  mutate(ratio = rat)
+```
+## Pivot longer
+```{r}
+library(ggplot2)
+table4a
+pivot_longer(table4a,names_to="year",values_to="cases",-country)
+
+
+eu <- EuStockMarkets %>% 
+  data.frame() %>%
+  mutate(index=1:n())
+
+head(eu)
+
+ggplot(eu,aes(x=index))+
+  geom_line(aes(y=DAX),color="red") + 
+  geom_line(aes(y=SMI),color="blue") + 
+  geom_line(aes(y=CAC),color="green") + 
+  geom_line(aes(y=FTSE),color="orange") 
+
+
+eu_long <- 
+  eu %>%
+  pivot_longer(-index,names_to="name",values_to="value")
+
+head(eu_long,8)
+
+ggplot(eu_long, aes(x=index,y=value,color=name)) + 
+  geom_line()
+```
+
+```{r}
+stats <-
+  mpg %>%
+  summarize(across(is.numeric, list(mean = mean, sd= sd)))
+
+stats
+
+pivot_longer(stats, everything(),names_sep = "_",names_to=c("var",".value"))
+```
+
+```{r}
+pivot_wider(table2,
+            names_from = type,
+            values_from = count)
+
+cty <- 
+  mpg %>% 
+  group_by(year,class) %>%
+  summarize(avg_cty=mean(cty))
+
+head(cty)
+
+pivot_wider(cty,names_from=class,values_from=avg_cty)
+
+
+cty <- 
+  mpg %>% 
+  group_by(year,class) %>%
+  summarize(avg_cty=mean(cty),
+            sd_cty=sd(cty))
+
+pivot_wider(cty,
+            names_from=year,
+            values_from=c(avg_cty, sd_cty))
+
+```
+
+## Separate y unite
+```{r}
+separate(table3,rate,into=c("cases","population"),sep="/",convert=T)
+
+unite(mpg,make,manufacturer,model,sep="_")
+
+storms %>%
+  unite(date,year,month,day,sep="-",remove=F,na.rm=T) %>%
+  select(date,year,month,day)
+
+starwars %>% 
+  group_by(hair_color) %>%
+  summarize(!is.numeric,n_distinct())
+
+starwars %>%
+  select(hair_color) %>%
+  n_distinct()
+
+starwars %>%
+  separate(hair_color,into = c("primero","segundo"),sep=",") %>%
+  select(!is.numeric) %>%
+  head()
+```
+## Tratamiento de NA
+
+```{r}
+dia <- diamonds %>%
+  mutate(y_new = ifelse(!between(y, 3, 20), NA , y))
+
+dia %>%
+  summarize(y_na = sum(is.na(y_new)))
+```
+
+```{r}
+summary(airquality)
+
+airquality %>%
+  drop_na() %>%
+  str()
+
+airquality %>%
+  drop_na(Ozone) %>%
+  str()
+
+airquality %>%
+  fill(Ozone, .direction = "down") %>%
+  slice(c(1:10,50:59)) %>%
+  select(-c(Temp,Wind)) %>%
+  head(10)
+
+airquality %>%
+  mutate("03_noNA"=replace_na(Ozone, mean(Ozone, na.rm=T)),.after=Ozone) %>%
+  slice(c(1:10,50:55)) %>%
+  select(-c(Wind,Temp,Solar.R))
+
+airquality %>%
+  group_by(Month) %>%
+  mutate("03_noNA"=replace_na(Ozone, mean(Ozone, na.rm=T)),.after=Ozone) %>%
+  ungroup() %>%
+  slice(c(1:10,50:55)) %>%
+  select(-c(Wind,Temp,Solar.R))
+
+```
+
+```{r}
+starwars %>% 
+  summarize(nas = sum(is.na(birth_year)))
+dim(starwars%>%drop_na(hair_color))
+```

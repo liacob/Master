@@ -1,0 +1,84 @@
+---
+title: "seccion9"
+author: "Lucian"
+date: "2/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+count_na <- function(x){
+  sum(is.na(x))
+}
+
+count_na(c(4,6,NA,3))
+```
+
+```{r}
+mpg %>%
+  mutate(consumo=if_else(cty<20,"bajo","alto")) %>%
+  select(cty,consumo)
+
+count_na <- function(x,normalize=F){
+  if(!is.vector(x)){
+    return(NA)
+  }
+  
+  if (normalize){
+    mean(is.na(x))
+  } else {
+    sum(is.na(x))
+  }
+}
+
+```
+
+
+```{r}
+df <- select(mpg,is.numeric)
+
+output <- vector("double",ncol(df))
+
+for (i in seq_along(df)){
+  output[[i]] <- median(df[[i]])
+}
+
+for(xa in df){
+  print(mean(xa))
+}
+
+set.seed(1)
+
+n_caras <- 0
+while(n_caras < 3){
+  moneda <- sample(c("cara","cruz"),size=1)
+  print(paste("Lanzando moneda...",moneda))
+  
+  if(moneda=="cara"){
+    n_caras <- n_caras +1
+  }
+}
+```
+
+
+```{r}
+for(col in starwars){
+  print(typeof(col))
+}
+
+```
+
+
+```{r}
+library(purrr)
+
+map_dbl(df,mean)
+
+map_dbl(airquality, count_na, normalize=T)
+
+map_df(df, ~(. - min(-)) / ((max(.) - min(.))))
+map_df(df, ~(. - min(.)) / ((max(.) - min(.))))
+```

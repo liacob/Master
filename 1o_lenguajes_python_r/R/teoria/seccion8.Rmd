@@ -1,0 +1,118 @@
+---
+title: "seccion8"
+author: "Lucian"
+date: "2/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(stringr)
+x <- c("moto","coche","autobus")
+
+str_view(x,".o")
+str_view_all(x,".o")
+
+str_view(c("hola.","adios."),"a\\.")
+
+str_view(c("tapar","destapar"),"^tapar")
+str_view(c("tapar","destapar"),"tapar$")
+
+```
+Luego tenemos cosas como [abc] que coincidencias con cualquiera de dentro de los corchetes, lo contrario sería [^abc]. También tenemos del tipo ab|cd que es que coincida con ab o con bd pero no con abd o acd. Por último también está [:alpha:] que es cualquiera del alfabeto, [:alnum:] cualquier alfanumerico, \\d cualquier digito, \\s cualquier espacio,tab,salto de linea
+
+```{r}
+str_view(c("test@test.com", "test@test12.com", "test@test", 
+           "test@test.es", "@test.com", "te st@test.com", "test@test.com hola"),
+         ".+@[^\\d\\s]+\\.(com|es)$")
+```
+
+```{r}
+str_length(c("hola","alberto",NA))
+str_c("a","b","c")
+str_c("pre-",c("a","b","c"),"-sub")
+str_sub("hola",2,4)
+
+x <- c("hola","que","tal")
+str_sub(x,2,4) <- str_to_upper(str_sub(x,2,4))
+x
+```
+## Factores
+```{r}
+library(forcats)
+x <- c("Primavera","Verano","Verano","Otoño","Otono")
+f <- factor(x,levels = c("Primavera","Verano","Otoño","Invierno"))
+f
+```
+## Cut
+```{r}
+edad <- c(10,20,25,38)
+cut(edad,breaks = c(10,20,30,40),include.lowest = T)
+
+f <- factor(mpg$class)
+length(f)
+levels(f)
+fct_count(f) %>% arrange(desc(n))
+
+f2 <- fct_infreq(f)
+levels(f2)
+
+f3 <- fct_reorder(f, .x= mpg$cty, .fun = mean)
+levels(f3)
+
+consumo_medio <- 
+  mpg %>%
+  group_by(class) %>%
+  summarize(avg_cty = mean(cty))
+consumo_medio
+arrange(consumo_medio,avg_cty)
+
+ggplot(consumo_medio,aes(x=class,y=avg_cty)) +
+  geom_col()
+
+ggplot(consumo_medio,aes(x=fct_reorder(class,avg_cty),y=avg_cty)) +
+  geom_col()
+```
+
+```{r}
+library(lubridate)
+
+ymd("20181012")
+
+ydm("20181012")
+
+Sys.getlocale("LC_TIME")
+
+dmy("20 de Enero de 2017")
+
+mdy("January 5th 2017")
+
+make_date(2015,10,10) # Año mes dia
+
+make_date(2020,c(1,2,4),5:7)
+
+as_datetime(c(1583934740, 1589304598))
+```
+## Fechas
+```{r}
+fecha <- ymd("20181205","20181208","20201103")
+
+mday(fecha)
+wday(fecha,label=T,abbr=F,week_start = 1)
+
+hour(fecha) <- 18
+fecha
+
+ymd("2011-01-01") + years(1)
+ymd("2020-04-01") + weeks(0:4)
+
+today()
+
+# Para sumar meses bien sin que nos den problemas por no tener el mismo número de días
+ymd("2013-01-31") %m+% months(0:4)
+
+floor_date(fecha,"week",week_start = 1)
+```

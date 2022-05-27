@@ -1,0 +1,129 @@
+---
+title: "seccion2"
+author: "Lucian"
+date: "31/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Nos topamos con una librería utilizada para limpiar datos y ordenarlos. Tiene funciones potentes para este cometido
+
+## Introducción a dplyr
+```{r}
+library(dplyr)
+iris %>%
+  select(Sepal.Width) %>%
+  arrange(Sepal.Width)
+
+# Operación en pipeline gracias al operado %>% que viene en dplyr. Primero selecionamos y luego ordenamos la columna en específico
+
+tibble(
+  x=1:3,z=x^2,txt="hola"
+)
+
+glimpse(iris)
+
+# Si tenemos un dataframe que nos tibble lo podemos transformar mediante la función as_tibble()
+
+```
+
+## Seleccionar filas con slice y filter
+```{r}
+slice(iris, 1:3)
+filter(iris, Species=='setosa',Sepal.Width > 3.1)
+# filter(iris, Species=='setosa' & Sepal.Width > 3.1) es lo mismo
+filter(iris, Species %in% c("setosa","versicolor"))
+
+iris_2 <- distinct(iris)
+all(dim(iris_2) == dim(iris))
+
+sample_frac(iris,0.5)
+sample_n(iris,10)
+
+top_n(iris,2,Sepal.Width) # Filas con mayor/menor valor en cierta columna
+
+a <- c(5,10:20)
+slice(starwars,a)
+filter(starwars,birth_year>100 | skin_color == "green")
+filter(starwars,sex != "male",  sex != "female", !is.na(sex))
+```
+
+## Seleccionar columnas con select
+
+```{r}
+slice(select(starwars,sex,name),1:3)
+select(starwars,name:mass)
+
+glimpse(select(starwars,contains("l")))
+
+select(starwars,name,height,mass)
+select(starwars,-c("films","vehicles","starships"))
+select(starwars,ends_with("_color"))
+# Tenemos funciones auxiliares que solo funcionan con select, starts_with,ends_with,contains,mathces,rum_range,one_of
+```
+
+## Ordenar y calcular mediante arrange
+
+```{r}
+
+star_sorted <- arrange(starwars,desc(height),mass)
+star_sorted
+                
+```
+
+## Uso de mutate
+
+``` {r}
+
+glimpse(mutate(starwars, bmi = mass/(height/100)^2))
+# Podemos crear varias columnas en la misma llamanda, solo separando pro comas y ya está. La transformación no es inplace, hay que asignarlo a un nuevo dataframe
+glimpse(transmute(starwars, bmi = mass/(height/100)^2))
+# Esto es lo mismo pero solo nos da la columna creada, las demás nada
+```
+## Uso de pipelines
+```{r}
+df1 <- filter(starwars, mass > 90)
+df2 <- select(df1,name:eye_color)
+df3 <- arrange(df2,height)
+df3
+
+# Pero nos la suda el valor intermedio y por eso usamos pipelines. No es inplace y por eso debemos asignarlo a algo si no queremos que se pierda
+
+starwars %>%
+  filter(birth_year > 100 | skin_color =="green") %>%
+  select(name,height,mass) %>%
+  mutate(imc = mass / (height/100)^2) %>%
+  arrange(height,desc(mass))
+```
+
+Pasamos a los joins, que es como SQL pero trabajando con DataFrames. Tenemos inner_join(x,y), left/right_join, full_join, semi_join (intersección pero solo las columnas de X), anti_join (total de x menos la intersección)
+
+Si faltan cosas se rellenan con NA
+
+## Uso de joins
+
+```{r}
+join <- full_join(band_members,band_instruments2,by=c("name"="artist"))
+
+join
+
+```
+Tenemos bind_rows/bind_cols para los tibbles, más eficientes que rbind/cbind de R base. Se combinan por nombre
+
+## Añadir filas/columnas
+
+```{r}
+
+bind_rows(
+  list(a=1,saludo="hi"),
+  tibble(saludo="hola",a=3:4,b=5:6),
+  c(a=7,b=8)
+)
+
+bind_cols(
+  tibble(uno=3:4,dos=c("a","b")),
+  tibble(logical = c(T,F))
+)
+```

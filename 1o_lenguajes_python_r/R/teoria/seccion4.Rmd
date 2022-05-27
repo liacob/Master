@@ -1,0 +1,108 @@
+---
+title: "seccion4"
+author: "Lucian"
+date: "1/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+````{r}
+library(ggplot2)
+library(dbplyr)
+```
+## Uso de summarize con funciones sencillas que devuelven un valor
+````{r}
+summarize(mpg,max_cyl=max(cyl),avg_cty=mean(cty),min_year=min(year))
+
+summarize(mpg,pares_distintos=n_distinct(cyl,cty),maxim=max(cyl,cty))
+```
+
+## Uso de summarize con funciones que devuelven varios valores
+````{r}
+summarize(mpg,rango=range(cty),cuant=quantile(displ,c(0.25,0.75)))
+
+summarize(mpg,min=min(cyl),qs=quantile(displ,c(0.25,0.5,0.75)))
+```
+## Ejercicio summarize
+````{r}
+summarize(mpg, corre = cor(hwy,cty))
+```
+## Select y slice avanzado
+````{r}
+select(mpg, is.numeric)
+
+vars <- c("cyl","cty","mpg")
+select(mpg,any_of(vars)) %>% head(5)
+
+select(mpg,is.numeric & !c(cyl,year)) %>% head(5)
+
+select(mpg, contains("y") | starts_with("f")) %>% head(5)
+
+slice(mpg, c(5,30:33))
+
+slice_min(mpg,displ,n=5)
+
+```
+## Ejercicio select
+````{r}
+select(starwars,c(name,contains("color")))
+
+slice_min(starwars,height,n=5)
+```
+## Ejemplos group_by
+````{r}
+mpg %>% group_by(cyl) %>% slice(1:2)
+
+data <- mpg %>% group_by(cyl) %>% select(cty) 
+
+glimpse(data)
+
+mpg %>% select(year,cty) %>% group_by(year) %>% arrange(cty, .by_group=T)
+
+mpg %>% group_by(cyl) %>% mutate(avg_cty=mean(cty)) %>% ungroup() %>% select(cyl,cty,avg_cty)
+```
+
+## Metodologia split, apply, combine
+```{r}
+mpg %>%
+  group_by(cyl) %>%
+  summarize(avg_cty = mean(cty))
+
+mpg %>%
+  group_by(drv,year) %>%
+  summarize(avg_hwy = mean(hwy))
+```
+## Ejercicio groupby/summarize
+```{r}
+starwars %>% group_by(sex) %>% summarize(n())
+```
+
+```{r}
+summarize(mpg,across(c(hwy,cty,displ),mean))
+
+summarize(mpg,across(is.numeric,mean))
+
+summarize(mpg,across(is.character,n_distinct))
+
+summarize(mpg,across(c(year,cyl),range))
+
+summarize(mpg,across(c(year,cyl),list(minimo=min,maximo=max)))
+
+summarize(mpg,across(c(year,cyl),list(minimo=min,maximo=max),.names = "{fn}--{col}"))
+
+iris %>% group_by(Species) %>% summarize(across(is.numeric,mean))
+
+iris %>%
+  group_by(Species) %>%
+  summarize(across(is.numeric,sd),n=n())
+# Si ponemos n a la izquierda de across nos la hace antes y entra en las cuentas de across asi que cuidado con eso
+
+filter(airquality,across(c(Ozone,Solar.R),is.na))
+
+iris %>% 
+  mutate(across(is.numeric,log)) %>% head()
+```
+

@@ -1,0 +1,126 @@
+---
+title: "seccion7"
+author: "Lucian"
+date: "2/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(ggplot2)
+library(dplyr)
+library(readxl)
+```
+`
+
+```{r}
+ggplot(data=mpg) + 
+  geom_point(mapping=aes(x=displ,y=hwy)) + 
+  facet_wrap(~drv,scales="free_y",ncol=2)
+
+ggplot(data=mpg) + 
+  geom_point(mapping=aes(x=displ,y=hwy)) + 
+  facet_grid(drv ~ class)
+
+```
+
+```{r}
+bicis <- read_excel('bicis_usos_acumulado.xls', 
+                    sheet = "Usos mar 2020", 
+                    range = "A3:E34")
+
+head(bicis)
+
+bicis_pivoted <-
+  bicis %>%
+  pivot_longer(names_to="Tipo_uso",values_to="Usos",-c("DIA","Tipo de día"))
+
+head(bicis_pivoted)
+
+ggplot(data=bicis_pivoted,mapping=aes(x=DIA,y=Usos,fill=`Tipo de día`)) + 
+  geom_bar(position="dodge",stat="identity") + 
+  facet_wrap(~Tipo_uso,scales="free_y",ncol=1) +
+  theme(legend.position = "top") +
+  scale_fill_brewer(palette="Dark2")
+
+bicis_pivoted$Tipo_uso
+```
+Para añadir etiquetas de tipo título se usa la función labs() y sus argumentos title, subtitle, caption, x, y
+
+```{r}
+ggplot(diamonds,aes(x=price,y=carat)) + 
+  geom_point() + 
+  xlab("Precio ($)") +
+  ylab("Quilates") + 
+  labs(
+    title="Relacón entre el precio y los quilates",
+    subtitle="Precio en dólares(2008)",
+    caption="Fuente: librería ggplot2"
+    ) 
+  
+
+```
+Tenemos a nuestra disposición también funciones como geom_text (capa de texto) y annotate (pasar los datos como vectores)
+```{r}
+max_data <- slice_max(economics,unemploy)
+
+ggplot(economics,aes(x=date,y=unemploy))+
+  geom_line()+
+  geom_hline(yintercept = median(economics$unemploy),color="blue") + 
+  geom_text(data = max_data,
+            label = glue_data(max_data,
+                                "Maximo de {unemploy} desempleados ({date})"),
+            nudge_y = 100, nudge_x = -250, hjust = "right") +
+  annotate(geom = "point",x=max_data$date, y=max_data$unemploy,
+           color="red",shape=21,fill="transparent",size=5)
+
+```
+
+```{r}
+ggplot(mpg,aes(x=displ,y=hwy,color=class))+
+  geom_point()+
+  scale_y_continuous(breaks=seq(10,50,by=5)) + 
+  scale_x_continuous(labels=NULL,breaks=NULL) +
+  scale_color_discrete(name="Tipo")
+  
+```
+
+```{r}
+bicis <- read_excel('bicis_usos_acumulado.xls', 
+                    sheet = "Usos mar 2020", 
+                    range = "A3:E34")
+
+bicis_long <- bicis %>%
+  pivot_longer(starts_with("Usos"), 
+               names_to = "Tipo_uso", 
+               values_to = "Usos")
+
+bicis_long$DIA[47]
+
+ggplot(bicis_long, aes(x = DIA, y = Usos)) +
+    geom_col() + 
+    geom_vline(xintercept = bicis_long$DIA[47],linetype = "dashed") + 
+    annotate(geom="text",x=bicis_long$DIA[50],y=10000,label="Cierre BiciMAD \n por estado de alarma",hjust=0) + 
+    xlab("Día") + ylab("Número total de usos")
+    
+```
+
+```{r}
+ggplot(mpg,aes(x=displ,y=hwy,color=cty)) + 
+  geom_point() +
+  scale_color_distiller(palette="YlOrRd")
+
+library(viridis)
+
+ggplot(mpg,aes(x=displ,y=hwy,color=cty)) + 
+  geom_point() +
+  scale_color_viridis()
+
+ggplot(economics_long, aes(date,value))+
+  geom_line() + 
+  facet_wrap(~variable, scales="free_y",nrow=2,strip.position = "bottom") + 
+  theme(strip.background = element_blank(),strip.placement = "outside")
+```
+Para guardar se usa ggsafe("grafico.pdf",fig.width=8,fig.height=6)

@@ -1,0 +1,129 @@
+---
+title: "seccion3"
+author: "Lucian"
+date: "31/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+La función clave para hacer gráficas es ggplot(dta=df,aes(x=column_x,y=column_y)) y para delante. Cualquier cosa se consulta la documentación y listo
+
+## Ejemplo 1
+```{r}
+library(ggplot2)
+library(dbplyr)
+
+ggplot(mpg,aes(hwy,cty)) + 
+  geom_point(aes(color=cyl)) + 
+  geom_smooth(method="lm") + 
+  scale_color_gradient() + 
+  theme_dark()
+```
+
+Vamos a verlo más en detalle para entender los argumentos bien
+
+## Ejemplo 2 
+```{r}
+ggplot(data=mpg) + 
+  geom_point(mapping = aes(x=displ, y=hwy,color=class,size=cyl))
+```
+
+Si por otro lado, queremos dar propiedades que no dependen de variables del data frame, debemo ponerlas fuera del aes
+
+## Ejemplo 3
+```{r}
+ggplot(data=mpg) + 
+  geom_point(mapping = aes(x=displ,y=hwy),color="blue",alpha=0.8,shape=2)
+```
+
+## Ejercicio 1
+```{r}
+ggplot(data=starwars)+
+  geom_point(mapping=aes(x=mass,y=height,color=sex))
+
+ggplot(data=filter(starwars,mass<500))+
+  geom_point(mapping=aes(x=mass,y=height,color=sex))
+```
+Ahora tratamos las transformaciones geom que podemos añadir a estas gráficas
+
+## Ejemplo 4
+```{r}
+ggplot(data=mpg) + 
+  geom_point(mapping = aes(x=displ,y=hwy))+
+  geom_line(mapping = aes(x=displ,y=hwy))
+ 
+# Para hacer el código más legible se puede hacer lo sugiente para no tener que repetir el código de mappeo tantas veces. Se hereda del primero si no volvemos a hacer más llamdas
+
+ggplot(data=mpg,mapping=aes(x=displ,y=hwy))+
+  geom_point() +
+  geom_line()
+```
+## Ejemplo 5
+
+```{r}
+ggplot(data=mpg,mapping=aes(x=displ,y=hwy,color=drv)) + 
+  geom_point() + 
+  geom_smooth()
+
+# Nos hace 3 ajustes polinómicos pues hereda el mapping color de ggplot, si solo queremos uno debemos hacer lo siguiente
+
+ggplot(data=mpg,mapping=aes(x=displ,y=hwy)) + 
+  geom_point(mapping = aes(color=drv)) + 
+  geom_smooth(linetype=2)
+
+```
+
+## Ejemplo 6
+```{r}
+
+mymean <- mpg %>% group_by(displ) %>% summarize(media=mean(hwy))
+  
+ggplot(data=mpg,mapping=aes(x=displ,y=hwy))+
+  geom_point() + 
+  geom_point(data=mymean,mapping=aes(x=displ,y=media),color="red")
+```
+
+## Ejercicio 2
+```{r}
+ggplot(data=economics, mapping=aes(x=date,y=pop)) + 
+  geom_point() + 
+  geom_point(mapping=aes(x=date,y=unemploy),color="red")
+```
+
+## Ejemplo 7
+```{r}
+ggplot(data=mpg)+
+  geom_bar(aes(x=class))
+
+datas <- mpg %>% group_by(class) %>% summarize(n=n())
+
+ggplot(data=datas) + 
+  geom_bar(aes(x=class,y=n),stat="identity")
+
+ggplot(data=mpg) + 
+  geom_bar(mapping=aes(x=hwy),stat="bin")
+```
+## Ejemplo 8
+```{r}
+ggplot(data=diamonds)+
+  geom_bar(mapping=aes(x=cut,fill=color))
+
+ggplot(data=diamonds)+
+  geom_bar(mapping=aes(x=cut,fill=color),position="dodge")
+
+ggplot(data=diamonds)+
+  geom_bar(mapping=aes(x=cut,fill=color),position="fill")
+
+ggplot(data=mpg)+
+  geom_point(mapping=aes(x=cty,y=hwy),position="jitter")
+```
+
+## Ejercicio 3
+
+```{r}
+iris
+ggplot(data=iris,mapping=aes(x=Petal.Length,y=Petal.Width,color=Sepal.Length))+
+  geom_point(position="jitter")
+```

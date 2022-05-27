@@ -1,0 +1,141 @@
+---
+title: "Seccion 1"
+author: "Lucian"
+date: "29/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Ahora toca lo del vídeo 1, con cosas generales sobre vectores en R
+
+## Vectores(I)
+```{r}
+a <- c(1,2,3)
+b <- vector('numeric',5)
+c <- rep(x=c('A','B','C'),each=2,times=3)
+d <- 1:10
+e <- seq(from=0.5,to=4.5,by=0.5)
+f <- seq(from=9,to=17,length.out=5)
+g <- sample(x=1:10,size=4)
+h <-rnorm(n=10,mean=4,sd=0.5)
+
+a
+b
+c
+d
+e
+f
+g
+
+```
+
+Ahora toca el video 2, donde se nos dan más detalles de las posibilidades que hay
+
+## Vectores(II)
+```{r}
+
+x <- 0:10
+length(x)
+x*3
+as.logical(x)
+as.logical(!x)
+as.logical(x) & as.logical(!x)
+sin(x*pi)
+mean(rnorm(n=10,mean=4,sd=0.5))
+summary(rnorm(n=10,mean=4,sd=0.5))
+x <- c(1,2,3,4,NA,6)
+mean(x)
+mean(x,na.rm=T)
+unique(x)
+table(x)
+
+x <- 1:10
+y <- 10:1
+z <- 10:8
+
+x+y
+x+z
+``` 
+
+Ahora vemos un poco de indexación de vectores
+
+## Vectores(III)
+```{r}
+x <- c(5,8,2,-1)
+x[c(1,3)]
+x[1:3]
+x[-3] # Ponemos en negativo justo el que no queremos
+
+x <- c(3,4,6,1,2,8,6,9,0,4)
+x[x>5]
+
+gen <- c("H","H","M","H","M","M")
+edad <- c(25,46,85,14,52,7)
+mean(edad[gen=="H"])
+
+```
+Ahora vamos a ver sobre las listas. Es como las listas de Python pero ahora les puedes dar nombres a los elementos, así que es como una combinación de listas y diccionarios
+
+## Listas
+```{r}
+
+parcela <- list(destino="Madrid",dimensiones=c(2,6,9),precio=51000)
+parcela
+
+parcela[[1]]
+parcela[["dimensiones"]]
+
+parcela$precio
+
+parcela[c(1,2)]
+parcela[c('destino','dimensiones')]
+
+parcela$destino <- "Granada"
+parcela$titular <- "Francisco Ruiz"
+names(parcela)
+
+parcela_extra <- list(anyocompra=2014,telefonos=c(91827374,918939758))
+c(parcela,parcela_extra)
+
+prueba <- list(primero=5,segundo="hola")
+prueba[[1]]
+prueba$segundo
+```
+Veamos los dataframes en R, debe parecerse mucho a Python
+
+## Dataframes(I)
+```{r}
+df <- data.frame(index=11:15,sex=c("m","h","m","m","h"),age=c(99,14,26,74,38))
+summary(df)
+dim(df)
+rownames(df)
+str(df)
+
+# library(help="datasets") para ver los datasets cargados en R 
+
+dim(airquality)
+colnames(airquality)
+summary(airquality)
+```
+Ahora a tratar el indexado de dataframes un poquito por los jajas
+
+## Dataframes(II)
+```{r}
+
+mtcars[[1]]
+mtcars[['mpg']]
+mtcars$mpg
+
+mtcars[c("mpg","disp")]
+mtcars[c(T,T,T,F,F,F,T)]
+
+mtcars[1:2]
+mtcars[1:2,]
+
+mtcars[rownames(mtcars)=="Mazda RX4",]
+
+mtcars[4:8,-c(5:11)]
+```

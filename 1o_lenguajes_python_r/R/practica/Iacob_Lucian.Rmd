@@ -1,0 +1,284 @@
+---
+title: "Práctica R"
+author: "Lucian Iacob"
+date: "2/11/2020"
+output: html_document
+---
+## Librerías
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(lubridate)
+library(readr)
+library(forcats)
+```
+## Ejercicio 1
+```{r}
+# Sé que pone explícitamente importar como dataframe no como tibble, pero al hacer read.csv me da ciertos problemas con el encoding (me salen puntos en vez de espacios) y no me tan bien así que prefiero usar read_csv para poder continuar con todos los demás ejercicios. No obstante la dejo comentada con lo que tengo puesto para que se pueda ver mejor dónde está el error
+
+df <- read_csv("comptagevelo2017.xls")
+
+#df <- read.csv("comptagevelo2017.xls",encoding= "UTF-8")
+
+# Tenemos el archivo en la misma carpeta donde trabajamos luego no ponemos ninguna ruta, solo el nombre del archivo
+
+head(df)
+
+# Uso head() para tener una visualización previa y ver de qué va el df. No se ve ningún carácter extraño ni nada así que supongo que con el read_csv sin especificar nada más ya funciona todo correctamente
+```
+## Ejercicio 2
+```{r}
+df <- df[-2] # Seleccionamos todas menos la segunda columna y lo asignamos al mismo df ya que en el enunciado se dice que la vamos a ignorar completamente
+
+head(df) # Vuelvo a llamar head() para asegurarme de que va todo bien
+```
+## Ejercicio 3
+```{r}
+# Lo que se nos pide es pivotar el dataframe para quedarnos con 3 columnas, la fecha, el distrito y el número de ciclistas
+
+df_long <- pivot_longer(df,names_to="District",values_to = "Cyclists",-Date)
+
+head(df_long)
+```
+## Ejercicio 4
+```{r}
+# Se me han ocurrido dos formas aunque habrá muchas más de hacerlo, veo más concisa la segunda así que dejo comentada la primera
+
+#df_long %>%
+ # mutate(Day = str_sub(Date,1,2),
+  #       Month = str_sub(Date,4,5),
+   #      Year = str_sub(Date,7,10))
+
+df_long <- 
+  df_long %>%
+  separate(Date,into=c("Day","Month","Year"),convert=T,sep="/",remove=F)
+
+# Selecciono el parámetro convert=TRUE aunque me lo cambia a int, tendremos que tener cuidado con eso. El argumento remove lo ponemos en False para que no nos elimine la columna que separamos
+
+head(df_long)
+```
+## Ejercicio 5
+```{r}
+df_long$Date <- as_date(df_long$Date,format="%d/%m/%Y")
+head(df_long) # Vuelvo a llamar head para ver que los cambios no han hecho nada raro
+```
+## Ejercicio 6
+```{r}
+# Con un str_replace_all en la columnda debería valer, usamos str_view antes y después para ver que el cambio se ha hecho correctamente
+
+str_view(df_long$District,"/")
+
+df_long$District <- str_replace_all(df_long$District," / ","/")
+
+str_view(df_long$District,"/")
+```
+## Ejercicio 7
+```{r}
+df_long %>%
+  group_by(District) %>%
+  summarize(nas_perc = 
+              sum(is.na(Cyclists)) / length(unique(df_long$Date)) * 100)
+
+# Agrupamos por distrito como nos dice el enunciado y dividos por el número total de días registrados, aunque sea un año entero nos aseguramos de que no haya faltado algún día por tomarse registro y no sean 365
+```
+## Ejercicio 8
+```{r}
+ejercicio_8 <-
+  df_long %>%
+  group_by(District) %>%
+  summarize(Total_Cyclists = sum(Cyclists,na.rm=T))
+
+ejercicio_8
+# Muy parecido al anterior, agrupamos por distrito, sumamos para obtener el total y listo. Importante indicar el parámetro na.rm=T para ignorar los NA en la suma
+```
+
+## Ejercicio 9
+```{r}
+# Se me ocurren dos formas aquí también y como no sé cuál es más efectiva las dejo las dos. Aunque creo que la primera se ve más clara
+ejercicio_9 <-
+  ejercicio_8 %>%
+  arrange(desc(Total_Cyclists)) %>%
+  head(5)
+
+top_n(arrange(ejercicio_8,desc(Total_Cyclists)),5)
+
+# Ambas nos dan lo mismo, guardo la primera y printeo la segunda
+```
+## Ejercicio 10
+```{r}
+ggplot(ejercicio_8,aes(x=Total_Cyclists,y=District)) +
+  geom_col()
+```
+## Ejercicio 11
+```{r}
+
+lista_meses <- c("Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre")
+  
+ejercicio_11 <-
+  df_long %>%
+  group_by(Month,District) %>%
+  summarize(Mensual_Cyclists = sum(Cyclists,na.rm=T))
+
+ejercicio_11 %>%
+  ggplot(aes(x=Month,
+             y=Mensual_Cyclists,
+             color=District)) +
+  geom_line()+
+  xlim(labels=lista_meses) + 
+  theme(axis.text.x = element_text(angle=90)) 
+
+# Agrupamos por distrito y mes y a continución sumanos. Pasamos esto a un objeto de ggplot para dibujar las líneas. Aparte hacemos una serie de cambios en los ticks del eje X para que se visualice todo mucho mejor. Se pueden ver enormes caidas debido a los NA que hemos visto antes
+
+```
+## Ejercicio 12
+```{r}
+ggplot(ejercicio_8,aes(x=Total_Cyclists,y=fct_reorder(District,Total_Cyclists))) +
+  geom_col() + 
+  ylab("Total_Cyclists")
+
+# Simplemente usamos fct_reorder() para ordenar y según el número total y ya
+```
+## Ejercicio 13
+```{r}
+ejercicio_13 <-
+  df_long %>%
+  group_by(Month) %>%
+  summarize(Mensual_Cyclists_avg =
+              sum(Cyclists,na.rm=T) / length(unique(df_long$District))) 
+
+# Agrupamos por mes y luego hacemos la media, si uso la función mean me da un resultado erróneo porque me dividiría por el número total de meses y yo quiero la media por distrito, así que divido por el número total de distritos
+
+ejercicio_13
+
+ejercicio_11 %>%
+  ggplot(aes(x=Month,
+             y=Mensual_Cyclists,
+             color=District)) +
+  geom_line()+
+  geom_line(ejercicio_13, 
+            mapping = aes(x=Month, y=Mensual_Cyclists_avg),
+            color="Blue", size=2) +
+  xlim(labels=lista_meses) + 
+  theme(axis.text.x = element_text(angle=90)) 
+
+# Mismo plot que el ejercicio 11 pero le añadimos por encima el recién hecho ejercicio_13 con color azul y más grosor
+```
+## Ejercicio 14
+```{r}
+ejercicio_14 <-
+  df_long %>%
+  mutate(Weekday=
+          wday(df_long$Date,label=T,abbr=F,week_start = 1),
+         .after=Date)
+
+
+# Añado una columna nueva que me indique el día de la semana que es en función de la columna Date y luego lo paso agrupo mediante esta y por distrito para poder sumar y tener el número de bicis usadas por día de la semana y por distrito. Posteriormente filtro que los distritos sean los que hemos sacado en el ejercio 9
+
+ejercicio_14%>%
+  group_by(Weekday,District) %>%
+  summarise(Cyclists_per_day = sum(Cyclists,na.rm=T)) %>%
+  filter(District %in% ejercicio_9$District) %>%
+  ggplot(aes(x=Cyclists_per_day,y=Weekday)) +
+  geom_col() + 
+  facet_wrap(~District,ncol=3)
+
+```
+## Ejercicio 15
+```{r}
+# Antes de cambiar la columna prefiero hacerlo en una columna aparte para ver que no he hecho algún cambio extraño. Lo guardo en otro df exactamente igual al que trabajamos constantemente pero añadiendo la columna sin NAs
+
+df_long_nonas <-
+  df_long %>%
+  group_by(District,Month) %>%
+  mutate("Cyclists_noNA"=replace_na(Cyclists, mean(Cyclists, na.rm=T)), .after=Cyclists)
+ 
+df_long_nonas %>%
+  filter(is.na(Cyclists))
+# Hacemos esto último para poder apreciar visualmente cómo han cambiado los NAs
+
+# Pont Jacques-Cartier tiene todo junio y julio en NA luego no lo rellenará con nada al no poder hacer una media mensual en esos dos meses
+```
+## Ejercicio 16
+```{r}
+
+df2 <- 
+  read_csv("localisationcompteursvelo2015.xls", col_names=T, col_types = NULL,
+           locale(encoding= "ISO-8859-1"))
+head(df2)
+
+# Usamos read_csv otra vez, ahora marcando el encoding a través de locale, los otro dos argumentos  necesitaban ser rellenados para que la llamda a la función operara correctamente
+```
+## Ejercicio 17
+
+```{r}
+
+ggplot(df2, aes(x = coord_X, y = coord_Y, color = Type, shape = Etat)) +
+   geom_point()
+
+# Simplemente introducimos en el mapping lo que nos dice el enunciado
+```
+## Ejercicio 18
+```{r}
+
+full_joined <- 
+  full_join(df_long,df2,by=c("District"="nom_comptage"))
+
+# Unimos mediante full join ambos dataframes igualando district a nom_comptage. De momento lo hago full y no de otra forma por no perder ninguna información. Según lo que se nos pida más adelante sabremos qué es mejor
+```
+
+
+## Ejercicio 19
+```{r}
+# En un primer intento se me ocurre lo siguiente. Comparar los valores únicos de District y de nom_comptage directamente con un %in% y con eso sacar una máscara que nos permita obtener los valores que no están
+
+mask = unique(df_long$District) %in% unique(df2$nom_comptage)
+
+unique(df_long$District)[!mask]
+```
+
+```{r}
+# Y con eso ya estaría en principio. Pero mirando por separado los valores únicos de cada columna veo que hay algunos que podrían ser lo mismo pero están escritos de manera diferente como "CSC" y "CSC (Côte Sainte-Catherine)" y a lo mejor "Saint-Laurent"
+
+# Una forma que veo es ir comprobando la lista de valores únicos del primer dataframe con los elementos únicos del segundo uno a uno mediante un bucle y str_subset. Esta es una forma menos elegante lo sé, y encima plantea otro problema y esque me muestra un match en "Boyer 2" que no está, porque detecta semejanza con Boyer 1 aunque claramente  no sea lo mismo
+
+for(element in c(unique(df2$nom_comptage))){
+  print(str_subset(unique(df_long$District), element))
+}
+
+# Con todo, yo creo que con el primer approach sería suficiente para sacar la mayor parte de matches y ya después habría que hacer ciertos "trucos" como el planteado para ver si se escapa algo
+```
+
+```{r}
+# Otra forma de obtener los que están en un dataframe y no en el otro sería trabajando con el dataframe joined buscando aquellas filas que tengan nom = NA. Como en el df2 original no hay niguna fila que tenga nom = NA eso nos quiere decir que esa fila no presenta match en District/nom_comptage pero como hemos hecho full join nos la rellena igual
+
+ds_na <-
+  full_joined %>%
+  filter(is.na(nom))
+
+# Ahora solo nos quedaría sacar los valores únicos de la columna distrito y obentemos lo mismo de antes
+
+unique(ds_na$District)
+```
+
+## Ejercicio 20
+````{r}
+# La opción más sencilla que se me ocurre es juntar el dataframe joined con el que hicimos en el ejercicio 8 para tener la columna con los ciclistas anuales totales y poder meterla en el mapping. Ahora bien, me parece algo incómodo trabajar con filas que tengan NA por haber hecho full_join para lo que queremos hacer en este ejercicio. Por eso he decidido probar con inner joins
+
+# Equivalente al ejercicio 18 pero con inner_join
+inner_joined <- 
+  inner_join(df_long,df2,by=c("District"="nom_comptage"))
+
+# Lo unimos con el del ejercicio 8
+inner_joined_2 <- 
+  inner_join(inner_joined,ejercicio_8,by="District")
+
+# Hacemos un plot de lo que se nos pide, además he añadido el label de distrito a cada punto para que quede más claro cuál es cuál. Si estuviéramos con el full_join el plot de puntos se saltaría todas las filas con NA de todas formas así que la información perdida al hacer inner_join nu supondría un gran problema. Además daría mucha molestia para añadir el label y habría que estar con condicionales (creo)
+
+ggplot(inner_joined_2, aes(x = coord_X, y = coord_Y, size=Total_Cyclists,label=District)) +
+  geom_point() + 
+  geom_text(nudge_x = -0.001, nudge_y = -0.002,angle=315,size=4)
+
+```
+Por último me gustaría añadir que agradecería muchísimo el feedback en esta práctica porque todo lo que sé de R lo he aprendido esta semana con los vídeos de la plataforma así que mi conocimiento de los fundamentos de R no es muy profundo. Un saludo y gracias.

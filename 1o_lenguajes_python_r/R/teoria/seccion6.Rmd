@@ -1,0 +1,68 @@
+---
+title: "seccion6"
+author: "Lucian"
+date: "2/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Tenemos múltiples funciones para leer archivos:
+
+- read_csv() el normal
+- read_csv2() para separados por ;
+- read_delim() para ASCII separados por algo distinto a , y ;
+- read_tsv() para ASCII separados por tab
+- read_tables() para ASCII separados por espacios
+
+Con sus correspondientes write_xxx()
+
+Argumentos importantes pues:
+
+- col_names(=TRUE) si la primera fila tiene la cabecera, si no se le pasa un vector de cadenas y listo
+- delim para indicar el delimitador solo para read_delim()
+- na vector con cadenas que se interpreta como NA
+- col_types vector con las clases para las columnas aunque no suele ser necesario
+- n_max número máximo de líneas a leer del fichero
+- skip número de líneas que saltarse al principio del fichero
+- locale para cambiar el encoding, separador decimal y formato de fechas
+
+```{r}
+getwd()
+```
+
+```{r}
+library(readr)
+
+accidentes <- read_csv2("AccidentesBicicletas_2017.csv",skip=2,locale = locale(encoding = "latin1"))
+
+head(accidentes,4)
+```
+```{r}
+wordlcup <- read_tsv("worldcupplayerinfo_20140701.tsv",
+                     col_types = list("X11" =col_skip(),"X12" = col_skip()))
+head(wordlcup)
+```
+
+```{r}
+sales <- read_csv2("Sales-all-vehicles-2017.csv",skip = 4)
+saless <- read_csv2("Sales-all-vehicles-2017.csv",skip = 4)
+
+has_data <- function(x) { sum(!is.na(x)) > 0 }
+sales <- sales %>% select_if(has_data)
+
+emptycols <- sapply(saless, function (k) all(is.na(k)))
+saless <- saless[!emptycols]
+
+saless %>%
+  drop_na() %>%
+  head(10)
+```
+Para leer excels pues usamos readxl y su función read_excel, importante tener en cuenta argumentos como sheet="" para indicar la hoja con la que nos quedamos de todo el excel. Argumentos útiles
+
+- range por ejemplo "C3:F14"
+- sheet 
+- col_names
+- na
+- col_types ("skip","guess","logical","numeric","date","text,"list")
